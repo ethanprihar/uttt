@@ -1,4 +1,5 @@
 import sys
+import random
 import colorama
 from game_utilities import *
 from dqn import *
@@ -19,6 +20,8 @@ BASE_REWARD = -2 ** 0
 WIN_REWARD = 2 ** 7
 SAVE_CHECKPOINT = 2 ** 10
 
+computer_first = random.random() < 0.5
+
 model = Model(Board(N),
               RANDOM_SETTLING_FACTOR,
               DISCOUNT_FACTOR,
@@ -31,12 +34,13 @@ model = Model(Board(N),
               SAVE_CHECKPOINT,
               False)
 model.load(sys.argv[1])
-board = Board(N)
 
+board = Board(N)
 board.print()
 while board.open_board:
-    model.move(board)
-    board.print()
+    if computer_first and board.available_moves().sum() == board.n ** 4:
+        model.move(board)
+        board.print()
     valid_move = False
     while not valid_move:
         string_move = input('move (super_row super_column sub_row sub_column): ')
@@ -52,3 +56,5 @@ while board.open_board:
                 print('bad move')
         except:
             print('bad input')
+    model.move(board)
+    board.print()
