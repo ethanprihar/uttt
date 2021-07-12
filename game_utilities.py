@@ -26,7 +26,10 @@ class Cell:
         self.tie = False
 
     def available_moves(self):
-        return self.board[:, :, EMPTY_CHANNEL].flatten().astype(bool)
+        if self.open_cell:
+            return self.board[:, :, EMPTY_CHANNEL].flatten().astype(bool)
+        else:
+            return np.zeros((self.n ** 2,)).astype(bool)
 
     def move(self, move):
         self.board[move.sub_row, move.sub_column, SELF_CHANNEL] = 1
