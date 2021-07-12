@@ -1,3 +1,4 @@
+import termcolor
 import numpy as np
 
 # Channel Constants
@@ -148,6 +149,20 @@ class Board:
                 opponent_turns += np.sum(self.board[r, c].board[:, :, OPPONENT_CHANNEL])
         return self_turns == opponent_turns
 
+    def nn_input(self):
+        available_moves = self.available_moves()
+        rows = []
+        for r in range(self.n):
+            cells = []
+            for c in range(self.n):
+                cell_nn_input = self.board[r, c].nn_input()
+                start = self.n ** 3 * r + self.n ** 2 * c
+                end = start + self.n ** 2
+                move_options = available_moves[start:end].reshape((self.n, self.n, 1))
+                cells.append(np.concatenate([cell_nn_input, move_options], axis=2))
+            rows.append(np.concatenate(cells, axis=1))
+        return np.expand_dims(np.concatenate(rows, axis=0), axis=0)
+
     def print(self):
         output = ''
         for sup_r in range(self.n):
@@ -164,6 +179,8 @@ class Board:
                                 output += 'x'
                             elif opponent_val:
                                 output += 'o'
+                            elif self.check_valid_move(Move(sup_r, sup_c, sub_r, sub_c)):
+                                output += termcolor.colored('*', 'blue')
                             else:
                                 output += '*'
                         else:
@@ -177,20 +194,6 @@ class Board:
                 output += '\n'
             output += ''.join(['-'] * (self.n ** 2 + self.n - 1)) + '\n' if sup_r < self.n - 1 else '\n'
         print(output)
-
-    def nn_input(self):
-        available_moves = self.available_moves()
-        rows = []
-        for r in range(self.n):
-            cells = []
-            for c in range(self.n):
-                cell_nn_input = self.board[r, c].nn_input()
-                start = self.n ** 3 * r + self.n ** 2 * c
-                end = start + self.n ** 2
-                move_options = available_moves[start:end].reshape((self.n, self.n, 1))
-                cells.append(np.concatenate([cell_nn_input, move_options], axis=2))
-            rows.append(np.concatenate(cells, axis=1))
-        return np.expand_dims(np.concatenate(rows, axis=0), axis=0)
 
     # Private Functions
     def check_self_win(self):

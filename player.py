@@ -1,6 +1,9 @@
 import sys
+import colorama
 from game_utilities import *
 from dqn import *
+
+colorama.init(autoreset=True)
 
 # Game Constants
 N = 3
@@ -15,7 +18,6 @@ BATCH_SIZE = 2 ** 5
 BASE_REWARD = -2 ** 0
 WIN_REWARD = 2 ** 7
 SAVE_CHECKPOINT = 2 ** 10
-TRAINING = bool(int(sys.argv[1]))
 
 model = Model(Board(N),
               RANDOM_SETTLING_FACTOR,
@@ -27,34 +29,18 @@ model = Model(Board(N),
               BASE_REWARD,
               WIN_REWARD,
               SAVE_CHECKPOINT,
-              TRAINING)
+              False)
+model.load(sys.argv[1])
+board = Board(N)
 
-if len(sys.argv) == 3:
-    model.load(sys.argv[2])
-
-if TRAINING:
-    while True:
-        board = Board(N)
-        extra_print = False
-        if not model.game_count % model.save_checkpoint:
-            board.print()
-            extra_print = True
-        while board.open_board:
-            model.move(board)
-            if extra_print and not board.first_players_turn():
-                board.print()
-            board.switch_self()
-            if extra_print and board.first_players_turn():
-                board.print()
-else:
-    board = Board(N)
+board.print()
+while board.open_board:
+    model.move(board)
     board.print()
-    while board.open_board:
-        model.move(board)
-        board.print()
-        valid_move = False
-        while not valid_move:
-            string_move = input('move (super_row super_column sub_row sub_column): ')
+    valid_move = False
+    while not valid_move:
+        string_move = input('move (super_row super_column sub_row sub_column): ')
+        try:
             move = Move(*[int(m) for m in string_move.split()])
             if board.check_valid_move(move):
                 board.switch_self()
@@ -62,3 +48,7 @@ else:
                 board.switch_self()
                 board.print()
                 valid_move = True
+            else:
+                print('bad move')
+        except:
+            print('bad input')
