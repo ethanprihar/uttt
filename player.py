@@ -20,8 +20,6 @@ BASE_REWARD = -2 ** 0
 WIN_REWARD = 2 ** 7
 SAVE_CHECKPOINT = 2 ** 10
 
-computer_first = random.random() < 0.5
-
 model = Model(Board(N),
               RANDOM_SETTLING_FACTOR,
               DISCOUNT_FACTOR,
@@ -34,18 +32,24 @@ model = Model(Board(N),
               SAVE_CHECKPOINT,
               False)
 model.load(sys.argv[1])
-
 board = Board(N)
+
+computer_first = random.random() < 0.5
+game_over = False
+
 board.print()
-while board.open_board:
-    if computer_first and board.available_moves().sum() == board.n ** 4:
-        model.move(board)
-        board.print()
+
+if computer_first:
+    model.move(board)
+    board.print()
+    game_over = not board.open_board
+
+while not game_over:
     valid_move = False
     while not valid_move:
         string_move = input('move (super_row super_column sub_row sub_column): ')
         try:
-            move = Move(*[int(m) for m in string_move.split()])
+            move = Move(*[int(m) - 1 for m in string_move.split()])
             if board.check_valid_move(move):
                 board.switch_self()
                 board.move(move)
@@ -56,5 +60,14 @@ while board.open_board:
                 print('bad move')
         except:
             print('bad input')
-    model.move(board)
-    board.print()
+    if board.open_board:
+        model.move(board)
+        board.print()
+    game_over = not board.open_board
+
+if board.self_win:
+    print('Computer Wins')
+elif board.opponent_win:
+    print('Human Wins')
+else:
+    print('Tie Game')
