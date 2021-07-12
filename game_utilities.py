@@ -108,6 +108,16 @@ class Board:
                     moves[start: end] = self.board[r, c].available_moves()
         return moves
 
+    def get_move_index(self, move):
+        move_index = self.n ** 3 * move.super_row
+        move_index += self.n ** 2 * move.super_column
+        move_index += self.n * move.sub_row
+        move_index += move.sub_column
+        return move_index
+
+    def check_valid_move(self, move):
+        return self.available_moves()[self.get_move_index(move)]
+
     def move(self, move):
         self.board[move.super_row, move.super_column].move(move)
         if self.check_self_win():
@@ -160,7 +170,9 @@ class Board:
                                 output += 'O'
                             else:
                                 output += '#'
+                    output += '|' if sup_c < self.n - 1 else ''
                 output += '\n'
+            output += ''.join(['-'] * (self.n ** 2 + self.n - 1)) + '\n' if sup_r < self.n - 1 else '\n'
         print(output)
 
     def nn_input(self):
