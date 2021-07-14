@@ -1,6 +1,7 @@
 import os
 import pickle
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense
 from tensorflow.keras.models import Model, clone_model, load_model
@@ -67,6 +68,8 @@ class DQNModel:
         self.target_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0),
                                   loss='huber',
                                   metrics=['mae', 'acc'])
+        if training:
+            tf.config.set_visible_devices([], 'GPU')
 
     def move(self, board):
         if not self.training:
