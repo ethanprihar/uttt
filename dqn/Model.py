@@ -69,7 +69,7 @@ class DQNModel:
                                   loss='huber',
                                   metrics=['mae', 'acc'])
         if training:
-            tf.config.set_visible_devices([], 'GPU')
+            os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     def move(self, board):
         if not self.training:
