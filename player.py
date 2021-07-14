@@ -1,38 +1,16 @@
 import sys
 import random
 import colorama
-from game_utilities import *
+
 from dqn import *
+from game_utilities import *
+
 
 colorama.init(autoreset=True)
 
-# Game Constants
-N = 3
-
-# Model Constants
-RANDOM_SETTLING_FACTOR = 1 - 1 / 2 ** 18
-DISCOUNT_FACTOR = 1 - 1 / 2 ** 6
-SAMPLE_BUFFER_SIZE = 2 ** 17
-SAMPLES_PER_UPDATE = 2 ** 7
-BATCHES_PER_UPDATE = 2 ** 5
-BATCH_SIZE = 2 ** 5
-BASE_REWARD = -2 ** 0
-WIN_REWARD = 2 ** 7
-SAVE_CHECKPOINT = 2 ** 10
-
-model = Model(Board(N),
-              RANDOM_SETTLING_FACTOR,
-              DISCOUNT_FACTOR,
-              SAMPLE_BUFFER_SIZE,
-              SAMPLES_PER_UPDATE,
-              BATCHES_PER_UPDATE,
-              BATCH_SIZE,
-              BASE_REWARD,
-              WIN_REWARD,
-              SAVE_CHECKPOINT,
-              False)
-model.load(sys.argv[1])
-board = Board(N)
+model = DQNModel(board=Board(), training=False)
+#model.load(sys.argv[1])
+board = Board()
 
 computer_first = random.random() < 0.5
 game_over = False

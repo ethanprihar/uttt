@@ -1,39 +1,22 @@
 import sys
-from game_utilities import *
+import colorama
+
 from dqn import *
+from game_utilities import *
 
-# Game Constants
-N = 3
 
-# Model Constants
-RANDOM_SETTLING_FACTOR = 1 - 1 / 2 ** 18
-DISCOUNT_FACTOR = 1 - 1 / 2 ** 6
-SAMPLE_BUFFER_SIZE = 2 ** 17
-SAMPLES_PER_UPDATE = 2 ** 7
-BATCHES_PER_UPDATE = 2 ** 5
-BATCH_SIZE = 2 ** 5
-BASE_REWARD = -2 ** 0
-WIN_REWARD = 2 ** 7
-SAVE_CHECKPOINT = 2 ** 10
+colorama.init(autoreset=True)
 
-model = Model(Board(N),
-              RANDOM_SETTLING_FACTOR,
-              DISCOUNT_FACTOR,
-              SAMPLE_BUFFER_SIZE,
-              SAMPLES_PER_UPDATE,
-              BATCHES_PER_UPDATE,
-              BATCH_SIZE,
-              BASE_REWARD,
-              WIN_REWARD,
-              SAVE_CHECKPOINT,
-              True)
+model = DQNModel(board=Board(), training=True)
+
 if len(sys.argv) == 2:
     model.load(sys.argv[1])
 
+'''
 while True:
-    board = Board(N)
+    board = Board()
     extra_print = False
-    if not model.game_count % model.save_checkpoint:
+    if not model.backup_count % model.backup_frequency:
         board.print()
         extra_print = True
     while board.open_board:
@@ -43,3 +26,10 @@ while True:
         board.switch_self()
         if extra_print and board.first_players_turn():
             board.print()
+'''
+
+while True:
+    board = Board()
+    while board.open_board:
+        model.move(board)
+        board.switch_self()
