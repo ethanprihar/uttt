@@ -131,7 +131,7 @@ class DQNModel:
             if self.transfer_count >= self.transfer_frequency:
                 self.update_target_model()
                 self.transfer_count = 0
-            if self.backup_count % self.backup_frequency == 0 and self.backup_count > 0:
+            if self.backup_count % self.backup_frequency == 0 and end_flag[0]:
                 self.save()
 
     def update_main_model(self):
