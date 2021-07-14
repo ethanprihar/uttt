@@ -1,11 +1,13 @@
+import os
 import sys
 import random
 import colorama
+import tensorflow as tf
 
 from dqn import *
 from game_utilities import *
 
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 colorama.init(autoreset=True)
 
 model = DQNModel(board=Board(), training=False)
