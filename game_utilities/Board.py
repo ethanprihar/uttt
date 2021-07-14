@@ -103,7 +103,7 @@ class Board:
                             elif opponent_val:
                                 output += 'o'
                             elif self.check_valid_move(Move(sup_r, sup_c, sub_r, sub_c)):
-                                output += termcolor.colored('*', 'blue')
+                                output += termcolor.colored('*', 'cyan')
                             else:
                                 output += '*'
                         else:
