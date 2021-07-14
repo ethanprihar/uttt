@@ -8,7 +8,6 @@ from game_utilities import *
 colorama.init(autoreset=True)
 
 model = DQNModel(board=Board(), training=True)
-
 if len(sys.argv) == 2:
     model.load(sys.argv[1])
 

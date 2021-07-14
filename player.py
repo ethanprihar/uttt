@@ -9,19 +9,18 @@ from game_utilities import *
 colorama.init(autoreset=True)
 
 model = DQNModel(board=Board(), training=False)
-#model.load(sys.argv[1])
-board = Board()
+if len(sys.argv) == 2:
+    model.load(sys.argv[1])
 
 computer_first = random.random() < 0.5
 game_over = False
 
+board = Board()
 board.print()
-
 if computer_first:
     model.move(board)
     board.print()
     game_over = not board.open_board
-
 while not game_over:
     valid_move = False
     while not valid_move:
