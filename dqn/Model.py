@@ -14,6 +14,7 @@ INITIAL_RANDOM_CHANCE = 2 ** 0
 RANDOM_CHANCE_GAIN = 1 - 1 / 2 ** 18
 MINIMUM_RANDOM_CHANCE = 1 / 2 ** 6
 WIN_REWARD = 2 ** 7
+CELL_REWARD = 2 ** 4
 BASE_REWARD = -2 ** 0
 DISCOUNT_FACTOR = 1 - 1 / 2 ** 6
 UPDATE_FREQUENCY = 2 ** 2
@@ -31,6 +32,7 @@ class DQNModel:
                  random_chance_gain=RANDOM_CHANCE_GAIN,
                  minimum_random_chance=MINIMUM_RANDOM_CHANCE,
                  win_reward=WIN_REWARD,
+                 cell_reward=CELL_REWARD,
                  base_reward=BASE_REWARD,
                  discount_factor=DISCOUNT_FACTOR,
                  update_frequency=UPDATE_FREQUENCY,
@@ -43,6 +45,7 @@ class DQNModel:
         self.random_chance_gain = random_chance_gain
         self.minimum_random_chance = minimum_random_chance
         self.win_reward = win_reward
+        self.cell_reward = cell_reward
         self.base_reward = base_reward
         self.discount_factor = discount_factor
         self.update_frequency = update_frequency
@@ -52,11 +55,10 @@ class DQNModel:
         self.transfer_count = 0
         self.backup_count = 0
         input_layer = Input(shape=board.get_state().shape)
-        conv_layer_1 = Conv2D(filters=64, kernel_size=board.n, strides=board.n, activation='relu')(input_layer)
-        conv_layer_2 = Conv2D(filters=128, kernel_size=3, strides=1, padding='same', activation='relu')(conv_layer_1)
-        conv_layer_3 = Conv2D(filters=256, kernel_size=3, strides=1, padding='same', activation='relu')(conv_layer_2)
-        flatten_layer = Flatten()(conv_layer_3)
-        dense_layer = Dense(units=512, activation='relu')(flatten_layer)
+        conv_layer_1 = Conv2D(filters=32, kernel_size=board.n, strides=board.n, activation='relu')(input_layer)
+        conv_layer_2 = Conv2D(filters=64, kernel_size=3, strides=1, activation='relu')(conv_layer_1)
+        flatten_layer = Flatten()(conv_layer_2)
+        dense_layer = Dense(units=128, activation='relu')(flatten_layer)
         output_layers = [Dense(units=1, activation='linear', name=f'output_{i}')(dense_layer)
                          for i in range(board.n ** 4)]
         self.main_model = Model(input_layer, output_layers)
@@ -106,7 +108,7 @@ class DQNModel:
             board.move(move)
 
             # reward
-            reward = [self.win_reward if board.self_win else self.base_reward]
+            reward = [self.get_reward(board, move)]
 
             # next_state
             next_state = board.get_state()
@@ -133,6 +135,14 @@ class DQNModel:
                 self.transfer_count = 0
             if self.backup_count % self.backup_frequency == 0 and end_flag[0]:
                 self.save()
+
+    def get_reward(self, board, move):
+        if board.self_win:
+            return self.win_reward
+        elif board.board[move.super_row, move.super_column].self_win:
+            return self.cell_reward
+        else:
+            return self.base_reward
 
     def update_main_model(self):
         states, actions, rewards, next_states, end_flags = self.record_keeper.get_batch()

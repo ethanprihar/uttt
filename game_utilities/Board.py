@@ -3,7 +3,7 @@ import termcolor
 
 from .Cell import Cell
 from .Move import Move
-from .Constants import *
+from .Constants import SELF_CHANNEL, OPPONENT_CHANNEL
 
 N = 3
 
