@@ -2,7 +2,6 @@ import os
 import sys
 import random
 import colorama
-import tensorflow as tf
 
 from dqn import *
 from game_utilities import *
@@ -22,6 +21,7 @@ board.print()
 if computer_first:
     model.move(board)
     board.print()
+    board.switch_self()
     game_over = not board.open_board
 while not game_over:
     valid_move = False
@@ -30,10 +30,13 @@ while not game_over:
         try:
             move = Move(*[int(m) - 1 for m in string_move.split()])
             if board.check_valid_move(move):
-                board.switch_self()
                 board.move(move)
-                board.switch_self()
-                board.print()
+                if computer_first:
+                    board.switch_self()
+                    board.print()
+                else:
+                    board.print()
+                    board.switch_self()
                 valid_move = True
             else:
                 print('bad move')
@@ -41,12 +44,12 @@ while not game_over:
             print('bad input')
     if board.open_board:
         model.move(board)
-        board.print()
+        if computer_first:
+            board.print()
+            board.switch_self()
+        else:
+            board.switch_self()
+            board.print()
     game_over = not board.open_board
 
-if board.self_win:
-    print('Computer Wins')
-elif board.opponent_win:
-    print('Human Wins')
-else:
-    print('Tie Game')
+print('Game Over')
