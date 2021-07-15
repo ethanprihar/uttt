@@ -141,8 +141,8 @@ class DQNModel:
 
             # perform scheduled tasks
             if self.purpose == 'training':
-                self.update_count += 1
-                self.transfer_count += 1
+                self.update_count += 2  # it's two because the other model is also playing
+                self.transfer_count += 2  # it's two because the other model is also playing
                 self.backup_count += 1 if end_flag[0] else 0
                 if end_flag[0]:
                     print(f'{self.backup_count} games completed')
