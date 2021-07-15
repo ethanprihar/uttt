@@ -55,11 +55,28 @@ class DQNModel:
         self.transfer_count = 0
         self.backup_count = 0
         input_layer = Input(shape=board.get_state().shape)
-        conv_layer_1 = Conv2D(filters=32, kernel_size=board.n, strides=board.n, activation='relu')(input_layer)
-        conv_layer_2 = Conv2D(filters=64, kernel_size=3, strides=1, activation='relu')(conv_layer_1)
+        conv_layer_1 = Conv2D(filters=32,
+                              kernel_size=board.n,
+                              strides=board.n,
+                              activation='relu',
+                              kernel_initializer='he_normal',
+                              bias_initializer='he_normal')(input_layer)
+        conv_layer_2 = Conv2D(filters=64,
+                              kernel_size=3,
+                              strides=1,
+                              activation='relu',
+                              kernel_initializer='he_normal',
+                              bias_initializer='he_normal')(conv_layer_1)
         flatten_layer = Flatten()(conv_layer_2)
-        dense_layer = Dense(units=128, activation='relu')(flatten_layer)
-        output_layers = [Dense(units=1, activation='linear', name=f'output_{i}')(dense_layer)
+        dense_layer = Dense(units=128,
+                            activation='relu',
+                            kernel_initializer='he_normal',
+                            bias_initializer='he_normal')(flatten_layer)
+        output_layers = [Dense(units=1,
+                               activation='linear',
+                               kernel_initializer='he_normal',
+                               bias_initializer='he_normal',
+                               name=f'output_{i}')(dense_layer)
                          for i in range(board.n ** 4)]
         self.main_model = Model(input_layer, output_layers)
         self.target_model = clone_model(self.main_model)
