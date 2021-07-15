@@ -1,3 +1,3 @@
-from .Model import *
+from .DQNModel import *
 from .RecordKeeper import *
 from .Sample import *

@@ -15,10 +15,10 @@ class Board:
         for r in range(n):
             for c in range(n):
                 self.board[r, c] = Cell(n)
-        self.open_board = 1
-        self.self_win = 0
-        self.opponent_win = 0
-        self.tie = 0
+        self.open_board = True
+        self.self_win = False
+        self.opponent_win = False
+        self.tie = False
         self.last_move = None
 
     def available_moves(self):
@@ -48,14 +48,14 @@ class Board:
     def move(self, move):
         self.board[move.super_row, move.super_column].move(move)
         if self.check_self_win():
-            self.self_win = 1
-            self.open_board = 0
+            self.self_win = True
+            self.open_board = False
         elif self.check_opponent_win():
-            self.opponent_win = 1
-            self.open_board = 0
+            self.opponent_win = True
+            self.open_board = False
         elif self.check_tie():
-            self.tie = 1
-            self.open_board = 0
+            self.tie = True
+            self.open_board = False
         self.last_move = move
 
     def switch_self(self):
