@@ -15,5 +15,5 @@ class RecordKeeper:
         return len(self.buffer)
 
     def get_batch(self):
-        states, actions, rewards, next_states, end_flags = zip(*random.sample(self.buffer, self.batch_size))
-        return np.stack(states), np.stack(actions), np.stack(rewards), np.stack(next_states), np.stack(end_flags)
+        states, actions, rewards, next_states, open_flags = zip(*random.sample(self.buffer, self.batch_size))
+        return np.stack(states), np.stack(actions), np.stack(rewards), np.stack(next_states), np.stack(open_flags)

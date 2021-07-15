@@ -131,9 +131,9 @@ class DQNModel:
             next_state = board.get_state()
             self.current_record.next_state = next_state
 
-            # end_flag
-            end_flag = [int(not board.open_board)]
-            self.current_record.end_flag = end_flag
+            # open_flag
+            open_flag = [int(board.open_board)]
+            self.current_record.open_flag = open_flag
 
             # record sample
             self.record_keeper.record(self.current_record)
@@ -143,8 +143,8 @@ class DQNModel:
             if self.purpose == 'training':
                 self.update_count += 2  # it's two because the other model is also playing
                 self.transfer_count += 2  # it's two because the other model is also playing
-                self.backup_count += 1 if end_flag[0] else 0
-                if end_flag[0]:
+                self.backup_count += 0 if open_flag[0] else 1
+                if not open_flag[0]:
                     print(f'{self.backup_count} games completed')
                 update_check_1 = self.update_count >= self.update_frequency
                 update_check_2 = self.record_keeper.get_buffer_size() >= self.record_keeper.batch_size
@@ -154,7 +154,7 @@ class DQNModel:
                 if self.transfer_count >= self.transfer_frequency:
                     self.update_target_model()
                     self.transfer_count = 0
-                if self.backup_count % self.backup_frequency == 0 and end_flag[0]:
+                if self.backup_count % self.backup_frequency == 0 and not open_flag[0]:
                     self.save()
 
     def get_reward(self, board, move):
@@ -168,9 +168,9 @@ class DQNModel:
             return self.base_reward
 
     def update_main_model(self):
-        states, actions, rewards, next_states, end_flags = self.record_keeper.get_batch()
+        states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch()
         target_model_prediction = np.concatenate(self.target_model.predict(next_states), axis=1)
-        expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * end_flags
+        expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * open_flags
         target_matrix = actions * (self.discount_factor * expected_reward + rewards)
         targets = [target_matrix[:, i] for i in range(self.n ** 4)]
         weights = dict(zip(self.main_model.output_names, [actions[:, i] for i in range(self.n ** 4)]))
@@ -180,6 +180,19 @@ class DQNModel:
         self.target_model.set_weights(self.main_model.get_weights())
 
     def save(self):
+        # metrics snapshot
+        states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch()
+        target_model_prediction = np.concatenate(self.target_model.predict(next_states), axis=1)
+        expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * open_flags
+        target_matrix = actions * (self.discount_factor * expected_reward + rewards)
+        targets = [target_matrix[:, i] for i in range(self.n ** 4)]
+        weights = dict(zip(self.main_model.output_names, [actions[:, i] for i in range(self.n ** 4)]))
+        evaluation = self.main_model.evaluate(states, targets, sample_weight=weights, verbose=0, return_dict=True)
+        loss = evaluation['loss']
+        mae = np.mean([evaluation[key] for key in evaluation.keys() if 'mae' in key])
+        print(f'loss: {loss}, mean absolute error: {mae}')
+
+        # save
         os.mkdir(f'checkpoints/model_{self.backup_count}')
         with open(f'checkpoints/model_{self.backup_count}/param.pkl', 'wb') as file:
             no_model_dict = {key: self.__dict__[key] for key in self.__dict__.keys()
