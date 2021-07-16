@@ -22,7 +22,7 @@ BASE_REWARD = -10
 DISCOUNT_FACTOR = 0.95
 UPDATE_FREQUENCY = 4
 TRANSFER_FREQUENCY = 512
-BACKUP_FREQUENCY = 10000
+BACKUP_FREQUENCY = 10
 
 
 class DQNModel:
@@ -44,7 +44,8 @@ class DQNModel:
                  backup_frequency=BACKUP_FREQUENCY):
         self.n = board.n
         self.purpose = purpose
-        self.record_keeper = RecordKeeper(maximum_buffer_size, batch_size)
+        self.record_keeper = RecordKeeper(maximum_buffer_size)
+        self.batch_size = batch_size
         self.random_chance = initial_random_chance
         self.random_chance_gain = random_chance_gain
         self.minimum_random_chance = minimum_random_chance
@@ -151,7 +152,7 @@ class DQNModel:
                 if not open_flag[0]:
                     print(f'{self.backup_count} games completed')
                 update_check_1 = self.update_count >= self.update_frequency
-                update_check_2 = self.record_keeper.get_buffer_size() >= self.record_keeper.batch_size
+                update_check_2 = self.record_keeper.get_buffer_size() >= self.batch_size
                 if update_check_1 and update_check_2:
                     self.update_main_model()
                     self.update_count = 0
@@ -172,7 +173,7 @@ class DQNModel:
             return self.base_reward
 
     def update_main_model(self):
-        states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch()
+        states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch(self.batch_size)
         target_model_prediction = np.concatenate(self.target_model.predict(next_states), axis=1)
         expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * open_flags
         target_matrix = actions * (self.discount_factor * expected_reward + rewards)
@@ -187,8 +188,8 @@ class DQNModel:
         # make folder
         os.mkdir(f'checkpoints/model_{self.backup_count}')
 
-        # same metrics
-        states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch()
+        # save metrics
+        states, actions, rewards, next_states, open_flags = self.record_keeper.get_all()
         target_model_prediction = np.concatenate(self.target_model.predict(next_states), axis=1)
         expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * open_flags
         target_matrix = actions * (self.discount_factor * expected_reward + rewards)
