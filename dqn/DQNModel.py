@@ -1,6 +1,7 @@
 import os
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense
 from tensorflow.keras.models import Model, clone_model, load_model
@@ -59,6 +60,9 @@ class DQNModel:
         self.update_count = 0
         self.transfer_count = 0
         self.backup_count = 0
+        self.loss_list = []
+        self.mae_list = []
+        self.backup_count_list = []
         input_layer = Input(shape=board.get_state().shape)
         conv_layer_1 = Conv2D(filters=32,
                               kernel_size=board.n,
@@ -180,7 +184,10 @@ class DQNModel:
         self.target_model.set_weights(self.main_model.get_weights())
 
     def save(self):
-        # metrics snapshot
+        # make folder
+        os.mkdir(f'checkpoints/model_{self.backup_count}')
+
+        # same metrics
         states, actions, rewards, next_states, open_flags = self.record_keeper.get_batch()
         target_model_prediction = np.concatenate(self.target_model.predict(next_states), axis=1)
         expected_reward = np.max(target_model_prediction, axis=1).reshape(-1, 1) * open_flags
@@ -190,20 +197,34 @@ class DQNModel:
         evaluation = self.main_model.evaluate(states, targets, sample_weight=weights, verbose=0, return_dict=True)
         loss = evaluation['loss']
         mae = np.mean([evaluation[key] for key in evaluation.keys() if 'mae' in key])
+        self.loss_list.append(loss)
+        self.mae_list.append(mae)
+        self.backup_count_list.append(self.backup_count)
+        fig, ax_loss = plt.subplots()
+        ax_loss.set_title(f'Training Progress at Game {self.backup_count}')
+        ax_loss.set_xlabel('Games Played')
+        ax_loss.set_ylabel('Loss', color='orange')
+        ax_loss.plot(self.backup_count_list, self.loss_list, color='orange')
+        ax_loss.tick_params(axis='y', labelcolor='orange')
+        ax_mae = ax_loss.twinx()
+        ax_mae.set_ylabel('MAE', color='blue')
+        ax_loss.plot(self.backup_count_list, self.mae_list, color='blue')
+        ax_loss.tick_params(axis='y', labelcolor='blue')
+        fig.tight_layout()
+        plt.savefig(f'checkpoints/model_{self.backup_count}/progress.png', dpi=300)
         print(f'loss: {loss}, mean absolute error: {mae}')
 
-        # save
-        os.mkdir(f'checkpoints/model_{self.backup_count}')
+        # save backup
         with open(f'checkpoints/model_{self.backup_count}/param.pkl', 'wb') as file:
-            no_model_dict = {key: self.__dict__[key] for key in self.__dict__.keys()
-                             if key not in ['main_model', 'target_model', 'purpose']}
-            pickle.dump(no_model_dict, file)
+            model_dict = {key: self.__dict__[key] for key in self.__dict__.keys()
+                          if key not in ['main_model', 'target_model', 'purpose']}
+            pickle.dump(model_dict, file)
         self.main_model.save(f'checkpoints/model_{self.backup_count}/main_model')
         self.target_model.save(f'checkpoints/model_{self.backup_count}/target_model')
 
     def load(self, path):
         with open(f'{path}/param.pkl', 'rb') as file:
-            no_model_dict = pickle.load(file)
-            self.__dict__.update(no_model_dict)
+            model_dict = pickle.load(file)
+            self.__dict__.update(model_dict)
         self.main_model = load_model(f'{path}/main_model')
         self.target_model = load_model(f'{path}/target_model')
