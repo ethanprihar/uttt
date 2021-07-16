@@ -22,7 +22,7 @@ BASE_REWARD = -10
 DISCOUNT_FACTOR = 0.95
 UPDATE_FREQUENCY = 4
 TRANSFER_FREQUENCY = 512
-BACKUP_FREQUENCY = 10
+BACKUP_FREQUENCY = 1000
 
 
 class DQNModel:
@@ -204,13 +204,13 @@ class DQNModel:
         fig, ax_loss = plt.subplots()
         ax_loss.set_title(f'Training Progress at Game {self.backup_count}')
         ax_loss.set_xlabel('Games Played')
-        ax_loss.set_ylabel('Loss', color='orange')
-        ax_loss.plot(self.backup_count_list, self.loss_list, color='orange')
-        ax_loss.tick_params(axis='y', labelcolor='orange')
+        ax_loss.set_ylabel('Loss', color='tab:orange')
+        ax_loss.plot(self.backup_count_list, self.loss_list, color='tab:orange')
+        ax_loss.tick_params(axis='y', labelcolor='tab:orange')
         ax_mae = ax_loss.twinx()
-        ax_mae.set_ylabel('MAE', color='blue')
-        ax_loss.plot(self.backup_count_list, self.mae_list, color='blue')
-        ax_loss.tick_params(axis='y', labelcolor='blue')
+        ax_mae.set_ylabel('MAE', color='tab:blue')
+        ax_mae.plot(self.backup_count_list, self.mae_list, color='tab:blue')
+        ax_mae.tick_params(axis='y', labelcolor='tab:blue')
         fig.tight_layout()
         plt.savefig(f'checkpoints/model_{self.backup_count}/progress.png', dpi=300)
         print(f'loss: {loss}, mean absolute error: {mae}')
