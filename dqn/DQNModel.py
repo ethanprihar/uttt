@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense
+from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, ReLU, Add, Flatten, Dense
 from tensorflow.keras.models import Model, clone_model, load_model
 
 from .Sample import Sample
@@ -64,38 +64,10 @@ class DQNModel:
         self.loss_list = []
         self.mae_list = []
         self.backup_count_list = []
-        input_layer = Input(shape=board.get_state().shape)
-        conv_layer_1 = Conv2D(filters=32,
-                              kernel_size=board.n,
-                              strides=board.n,
-                              activation='relu',
-                              kernel_initializer='he_normal',
-                              bias_initializer='he_normal')(input_layer)
-        conv_layer_2 = Conv2D(filters=64,
-                              kernel_size=3,
-                              strides=1,
-                              activation='relu',
-                              kernel_initializer='he_normal',
-                              bias_initializer='he_normal')(conv_layer_1)
-        flatten_layer = Flatten()(conv_layer_2)
-        dense_layer = Dense(units=128,
-                            activation='relu',
-                            kernel_initializer='he_normal',
-                            bias_initializer='he_normal')(flatten_layer)
-        output_layers = [Dense(units=1,
-                               activation='linear',
-                               kernel_initializer='he_normal',
-                               bias_initializer='he_normal',
-                               name=f'output_{i}')(dense_layer)
-                         for i in range(board.n ** 4)]
-        self.main_model = Model(input_layer, output_layers)
+        self.main_model = make_model(board)
         self.target_model = clone_model(self.main_model)
-        self.main_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0),
-                                loss='huber',
-                                metrics=['mae', 'acc'])
-        self.target_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0),
-                                  loss='huber',
-                                  metrics=['mae', 'acc'])
+        self.main_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0), loss='huber', metrics=['mae'])
+        self.target_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0), loss='huber', metrics=['mae'])
 
     def get_move(self, board):
         self.current_record = Sample()
@@ -229,3 +201,51 @@ class DQNModel:
             self.__dict__.update(model_dict)
         self.main_model = load_model(f'{path}/main_model')
         self.target_model = load_model(f'{path}/target_model')
+
+
+# Model making helper functions
+def make_model(board):
+    input_layer = Input(shape=board.get_state().shape)
+    model = Conv2D(filters=256,
+                   kernel_size=board.n,
+                   strides=board.n,
+                   kernel_initializer='he_normal',
+                   bias_initializer='he_normal')(input_layer)
+    model = BatchNormalization()(model)
+    model = ReLU()(model)
+    for i in range(board.n):
+        model = residual_block(model)
+    model = Flatten()(model)
+    model = Dense(units=256,
+                  activation='relu',
+                  kernel_initializer='he_normal',
+                  bias_initializer='he_normal')(model)
+    output_layers = [Dense(units=1,
+                           activation='linear',
+                           kernel_initializer='he_normal',
+                           bias_initializer='he_normal',
+                           name=f'output_{i}')(model)
+                     for i in range(board.n ** 4)]
+    return Model(input_layer, output_layers)
+
+
+def residual_block(x):
+    y = Conv2D(filters=256,
+               kernel_size=3,
+               strides=1,
+               padding='same',
+               kernel_initializer='he_normal',
+               bias_initializer='he_normal')(x)
+    y = BatchNormalization()(y)
+    y = ReLU()(y)
+    y = Conv2D(filters=256,
+               kernel_size=3,
+               strides=1,
+               padding='same',
+               activation='relu',
+               kernel_initializer='he_normal',
+               bias_initializer='he_normal')(y)
+    y = BatchNormalization()(y)
+    z = Add()([x, y])
+    z = ReLU()(z)
+    return z
