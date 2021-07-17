@@ -11,7 +11,7 @@ from game_utilities import Move
 from .RecordKeeper import RecordKeeper
 
 MAXIMUM_BUFFER_SIZE = 100000
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 INITIAL_RANDOM_CHANCE = 1
 RANDOM_CHANCE_GAIN = 0.9999954
 MINIMUM_RANDOM_CHANCE = 0.01
@@ -21,7 +21,7 @@ CELL_REWARD = 0
 BASE_REWARD = -10
 DISCOUNT_FACTOR = 0.95
 UPDATE_FREQUENCY = 4
-TRANSFER_FREQUENCY = 512
+TRANSFER_FREQUENCY = 8192
 BACKUP_FREQUENCY = 1000
 
 
@@ -66,8 +66,8 @@ class DQNModel:
         self.backup_count_list = []
         self.main_model = make_model(board)
         self.target_model = clone_model(self.main_model)
-        self.main_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0), loss='huber', metrics=['mae'])
-        self.target_model.compile(optimizer=Adam(learning_rate=0.00025, clipnorm=1.0), loss='huber', metrics=['mae'])
+        self.main_model.compile(optimizer=Adam(clipnorm=1.0), loss='huber', metrics=['mae'])
+        self.target_model.compile(optimizer=Adam(clipnorm=1.0), loss='huber', metrics=['mae'])
 
     def get_move(self, board):
         self.current_record = Sample()
