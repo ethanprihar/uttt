@@ -17,14 +17,12 @@ helper_model.target_model = training_model.target_model
 
 while True:
     board = Board()
-    # board.print()
     helper_move = None
     while board.open_board:
         training_move = training_model.get_move(board)
         board.move(training_move)
         if not board.open_board:
             training_model.set_result(board, training_move)
-        # board.print()
         board.switch_self()
         helper_model.set_result(board, helper_move)
         if board.open_board:
@@ -33,5 +31,4 @@ while True:
             if not board.open_board:
                 helper_model.set_result(board, helper_move)
             board.switch_self()
-            # board.print()
             training_model.set_result(board, training_move)
