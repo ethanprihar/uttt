@@ -62,6 +62,12 @@ class Board:
         for row in self.board:
             for cell in row:
                 cell.switch_self()
+        if self.self_win:
+            self.self_win = False
+            self.opponent_win = True
+        elif self.opponent_win:
+            self.opponent_win = False
+            self.self_win = True
 
     def first_players_turn(self):
         self_turns = 0
