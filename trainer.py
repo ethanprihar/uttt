@@ -17,18 +17,18 @@ helper_model.target_model = training_model.target_model
 
 while True:
     board = Board()
-    helper_move = None
+    training_move = None
     while board.open_board:
-        training_move = training_model.get_move(board)
-        board.move(training_move)
+        helper_move = helper_model.get_move(board)
+        board.move(helper_move)
         if not board.open_board:
-            training_model.set_result(board, training_move)
+            helper_model.set_result(board, helper_move)
         board.switch_self()
-        helper_model.set_result(board, helper_move)
+        training_model.set_result(board, training_move)
         if board.open_board:
-            helper_move = helper_model.get_move(board)
-            board.move(helper_move)
+            training_move = training_model.get_move(board)
+            board.move(training_move)
             if not board.open_board:
-                helper_model.set_result(board, helper_move)
+                training_model.set_result(board, training_move)
             board.switch_self()
-            training_model.set_result(board, training_move)
+            helper_model.set_result(board, helper_move)

@@ -58,6 +58,7 @@ class DQNModel:
         self.transfer_frequency = transfer_frequency
         self.backup_frequency = backup_frequency
         self.current_record = Sample()
+        self.total_moves = 0
         self.update_count = 0
         self.transfer_count = 0
         self.backup_count = 0
@@ -118,11 +119,12 @@ class DQNModel:
 
             # perform scheduled tasks
             if self.purpose == 'training':
+                self.total_moves += 2  # it's two because the other model is also playing
                 self.update_count += 2  # it's two because the other model is also playing
                 self.transfer_count += 2  # it's two because the other model is also playing
                 self.backup_count += 0 if open_flag[0] else 1
                 if not open_flag[0]:
-                    print(f'{self.backup_count} games completed')
+                    print(f'{self.backup_count} games completed, {self.total_moves} moves made')
                 update_check_1 = self.update_count >= self.update_frequency
                 update_check_2 = self.record_keeper.get_buffer_size() >= self.batch_size
                 if update_check_1 and update_check_2:
