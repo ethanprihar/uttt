@@ -67,8 +67,8 @@ class DQNModel:
         self.backup_count_list = []
         self.main_model = make_model(board)
         self.target_model = clone_model(self.main_model)
-        self.main_model.compile(optimizer=Adam(clipnorm=1.0), loss='huber', metrics=['mae'])
-        self.target_model.compile(optimizer=Adam(clipnorm=1.0), loss='huber', metrics=['mae'])
+        self.main_model.compile(optimizer=Adam(learning_rate=1e4, clipnorm=1.0), loss='huber', metrics=['mae'])
+        self.target_model.compile(optimizer=Adam(learning_rate=1e4, clipnorm=1.0), loss='huber', metrics=['mae'])
 
     def get_move(self, board):
         self.current_record = Sample()
